@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -19,10 +18,18 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-venv/
 
-# Model dosyaları
+# Sanal ortam
+venv/
+env/
+ENV/
+
+# Model ve cache dosyaları
 model/
+*.joblib
+*.pkl
+__pycache__/
+*.pyc
 
 # IDE
 .idea/
@@ -33,6 +40,16 @@ model/
 # Sistem dosyaları
 .DS_Store
 Thumbs.db
+
+# Log dosyaları
+*.log
+logs/
+
+# Geçici dosyalar
+*.tmp
+*.bak
+*.swp
+*~
 
 # Kullanılmayan kurulum dosyaları
 setup_nltk.py
