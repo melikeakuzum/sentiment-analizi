@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duygu Analizi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .textarea-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            font-size: 16px;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        .char-count {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .result-box {
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        .result-box.pozitif {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid rgba(72, 187, 120, 0.2);
+        }
+        .result-box.negatif {
+            background: rgba(245, 101, 101, 0.1);
+            border: 1px solid rgba(245, 101, 101, 0.2);
+        }
+        .result-box.notr {
+            background: rgba(160, 174, 192, 0.1);
+            border: 1px solid rgba(160, 174, 192, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="analysis-card">
+            <h2 class="text-center mb-4">Duygu Analizi</h2>
+            
+            <div class="textarea-container">
+                <textarea id="metin" class="form-control" rows="6" 
+                          placeholder="Analiz edilecek metni girin... (Türkçe veya İngilizce)"
+                          maxlength="1000"></textarea>
+                <div class="char-count">
+                    <span id="currentLength">0</span>/1000
+                </div>
+            </div>
+
+            <div id="sonucKutusu" class="result-box" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Analiz Sonucu</h4>
+                        <p>Duygu: <strong id="sonucText">-</strong></p>
+                        <p>Dil: <span id="dilText">-</span></p>
+                        <p>Güven Skoru: <span id="puanText">-</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Metin İstatistikleri</h4>
+                        <p>Kelime Sayısı: <span id="kelimeSayisi">-</span></p>
+                        <p>Karakter Sayısı: <span id="karakterSayisi">-</span></p>
+                        <p>Emoji Sayısı: <span id="emojiSayisi">-</span></p>
+                    </div>
+                </div>
+                
+                <div id="detayliAnaliz" class="mt-4">
+                    <h4>Detaylı Analiz</h4>
+                    <p>En Pozitif Cümle: <span id="enPozitifCumle">-</span></p>
+                    <p>En Negatif Cümle: <span id="enNegatifCumle">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let typingTimer;
+        const doneTypingInterval = 1000;
+
+        function updateCharCount() {
+            const length = $('#metin').val().length;
+            $('#currentLength').text(length);
+        }
+
+        function updateResults(data) {
+            $('#sonucKutusu').show().removeClass('pozitif negatif notr').addClass(data.sonuc.toLowerCase());
+            $('#sonucText').text(data.sonuc);
+            $('#dilText').text(data.dil);
+            $('#puanText').text((data.puan * 100).toFixed(1) + '%');
+            $('#kelimeSayisi').text(data.detaylar.kelime_sayisi);
+            $('#karakterSayisi').text(data.detaylar.karakter_sayisi);
+            $('#emojiSayisi').text(data.detaylar.emoji_sayisi);
+            $('#enPozitifCumle').text(data.detaylar.en_pozitif_cumle || '-');
+            $('#enNegatifCumle').text(data.detaylar.en_negatif_cumle || '-');
+        }
+
+        $('#metin').on('input', function() {
+            updateCharCount();
+            clearTimeout(typingTimer);
+            
+            const metin = $(this).val();
+            if (metin) {
+                typingTimer = setTimeout(function() {
+                    $.ajax({
+                        url: '/analiz',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ metin: metin }),
+                        success: function(response) {
+                            updateResults(JSON.parse(response));
+                        }
+                    });
+                }, doneTypingInterval);
+            } else {
+                $('#sonucKutusu').hide();
+            }
+        });
+
+        updateCharCount();
+    </script>
+</body>
+</html> 
